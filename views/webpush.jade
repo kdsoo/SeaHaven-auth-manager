@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  div.row#credentials(style="padding:5px 5px 5px 5px")
+    div.col-xs-1
+      img#userphoto
+    div.col-xs-2
+      div#username
+    div.col-xs-1
+      button.btn-danger#logout(onclick="location.href='" + namespace + "/logout'") LOGOUT
+  h3= title
+  div.container-fluid
+    div.debug-control
+      button(class="btn btn-default", id="btnPushNotifications", name="btnPushNotifications").
+
+  script(type='text/javascript', src=namespace + '/javascripts/main.js')
+  script(type='text/javascript', src=namespace + '/javascripts/credentials.js')

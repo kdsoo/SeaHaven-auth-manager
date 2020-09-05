@@ -1,0 +1,30 @@
+extends layout
+
+block content
+  div.container
+    .panel.panel-default
+      .panel-heading
+        h3= title
+      .row.row-list
+        - var google_btnimg = "images/google.png";
+        - var kakao_btnimg = "images/kakao.png";
+        - var instagram_btnimg = "images/instagram.png";
+        #{google_btnimg}
+        #{kakao_btnimg}
+        #{instagram_btnimg}
+        form(name="local", action="auth/local", method="post", class="row row-list")
+          div.col-4
+            label(for='id') Local credential
+          div.col-3
+            input(type='text', name='username', class="form-control input-sm")
+          div.col-3
+            input(type='password', name='password', class="form-control input-sm")
+          div.col-2
+            input(type='submit', name='login', value='login', class="btn btn-info")
+      .panel-body
+        div
+          input(type="image", src=google_btnimg, onclick='location.href="auth/google"')
+        div
+          input(type="image", src=instagram_btnimg, onclick='location.href="auth/instagram"')
+        div
+          input(type="image", src=kakao_btnimg, onclick='location.href="auth/kakao"')

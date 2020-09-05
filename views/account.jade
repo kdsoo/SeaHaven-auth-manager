@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  p
+    img(src=JSON.parse(user).photos[0].value)
+    = 'Hello '
+    strong= name
+    = '!'
+  p This page is open to login users.
+  - var url = "/meta-service";
+  #{url}
+  button(class='btn-primary', onclick='location.href="#{url}"') Login/Signup with your Google account
+

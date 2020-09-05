@@ -1,0 +1,29 @@
+{
+
+	"oauth": {
+		"host": "your.server.domain.name",
+		"namespace": "/authmanager",
+		"session": {
+			"secret": "YOUR_OWN_UNIQUE_SECRET_KEY"
+		},
+		"mongodb": {
+			"mongodb_auth": "mongodb://127.0.0.1:27017",
+			"dbName": "USER_CREDENTIAL_DB_NAME"
+		},
+		"google": {
+			"clientId": "",
+			"clientSecret": "",
+			"callbackURL": "https://your.server.domain.name/authmanager/oauth/google/callback"
+		},
+		"kakao": {
+			"clientId": "",
+			"clientSecret": "",
+			"callbackURL": "https://your.server.domain.name/authmanager/auth/kakao/callback"
+		},
+		"instagram": {
+			"clientId": "",
+			"clientSecret": "",
+			"callbackURL": "https://your.server.domain.name/authmanager/auth/instagram/callback"
+		}
+	}
+}
