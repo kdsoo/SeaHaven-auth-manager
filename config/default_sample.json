@@ -9,6 +9,7 @@
 		"mongodb": {
 			"mongodb_auth": "mongodb://127.0.0.1:27017",
 			"dbName": "USER_CREDENTIAL_DB_NAME"
+			"collection": "COLLECTIONAME"
 		},
 		"google": {
 			"clientId": "",

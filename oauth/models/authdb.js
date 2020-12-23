@@ -1,9 +1,162 @@
 var db = require('../db');
 var passwd = require('../localpasswd');
 var ObjectId = require('mongodb').ObjectID;
+var config = require('config');
+var col = config.get("oauth.mongodb.collection");
+
+module.exports.numOfAdmin = function(cb) {
+	var collection = db.get().collection(col);
+	collection.find({isAdmin: true}).toArray(function(err, result) {
+		if (err) {
+			console.error(err);
+			cb(err, null);
+		} else {
+			var num = result.length;
+			cb(null, num);
+		}
+	});
+}
+
+module.exports.setAdmin = function(id, status, cb) {
+	var collection = db.get().collection(col);
+	collection.findOne({_id: ObjectId(id)}, function(err, ret) {
+		if (err) {
+			console.error(err);
+			cb(err, null);
+		} else {
+			collection.updateOne({_id: ObjectId(id)}, {$set: {isAdmin: status}}, function(err, ret) {
+				if (err) {
+					console.error(err);
+					cb(err, null);
+				} else {
+					var result = false;
+					if (ret.result.ok)
+						result = true;
+					cb(null, result);
+				}
+			});
+		}
+	});
+}
+
+module.exports.dupIdCheck = function(oauth, user, cb) {
+	var query = {};
+	var doc = {};
+	switch (oauth) {
+		case "google":
+			query = {"google.emails.value": user};
+			break;
+		case "kakao":
+			query = {"kakao._json.kaccount_email": user};
+			break;
+		// case "instagram":
+			// FIXME: instram oauth is missing for now
+			//break;
+		case "local":
+			query = {id: user};
+			break;
+		default:
+			console.error(oauth + " not supported oauth server");
+			break;
+	}
+	console.log(oauth, query);
+	var collection = db.get().collection(col);
+	collection.findOne(query, function(err, item) {
+		if (err) {
+			console.error(err);
+			cb(err, null);
+		} else {
+			console.log(item);
+			if (item)
+				cb(null, true);
+			else
+				cb(null, false);
+		}
+	});
+}
+
+module.exports.addLocalUser = function(credential, cb) {
+	var collection = db.get().collection(col);
+	collection.findOne({id: credential.id}, function(err, item) {
+		if (err) {
+			console.error("addLocalUser findOne error:", err);
+			cb(err, null);
+		} else {
+			if (!item) {
+				passwd.hashPassword(credential.passwd, function(err, res) {
+					if (err) {
+						console.error("hashPassword error:", err);
+						cb(err, null);
+					} else {
+						credential.passwd = res;
+						credential.isActive = false;
+						collection.insertOne(credential, function(err, res) {
+							if (err) {
+								console.error("insertOne error:", err);
+								cb(err, null, isAdmin);
+							} else {
+								var isAdmin = false;
+								cb(null, res, isAdmin);
+							}
+						});
+					}
+				});
+			} else {
+				console.error(cretential.id, "exists");
+				cb("Duplicate ID exists", null);
+			}
+		}
+	});
+}
+
+module.exports.updateLocalUser = function(credential, cb) {
+	var query = {id: credential.id};
+	var collection = db.get().collection(col);
+	collection.findOne(query, function(err, item) {
+		if (err) {
+			console.error("updateLocalUser findOne err:", err);
+			cb(err, null);
+		} else {
+			if (!item) {
+				console.error(credential.id, "no such user");
+				cb(null, false);
+			} else {
+				if (credential.passwd) {
+					passwd.hashPassword(credential.passwd, function(err, res) {
+						if (err) {
+							console.error("updateLocalUser hashPassword err:", err);
+							cb(err, null);
+						} else {
+							credential.passwd = res;
+							collection.updateOne({_id: ObjectId(item._id)}, {$set: credential}, function(err, ret) {
+								if (err) {
+									console.error(err);
+									cb(err, null);
+								} else {
+									console.log("updated " + item._id + " with isActive false got " + ret);
+									cb(null, ret);
+								}
+							});
+						}
+					});
+				} else {
+					collection.updateOne({_id: ObjectId(item._id)}, {$set: credential}, function(err, ret) {
+						if (err) {
+							console.error(err);
+							cb(err, null);
+						} else {
+							console.log("updated " + item._id + " with isActive false got " + ret);
+							cb(null, ret);
+						}
+					});
+				}
+			}
+		}
+	});
+}
 
 module.exports.isValidLocalUser = function(user, pass, cb) {
-	var collection = db.get().collection('users');
+	var collection = db.get().collection(col);
 	collection.findOne({ id: user }, function(err, item) {
 		if (err) console.error(err);
 		var isAdmin = false;
@@ -13,6 +166,7 @@ module.exports.isValidLocalUser = function(user, pass, cb) {
 			if (item.isAdmin == true) isAdmin = true;
 			// password hash in mongodb is in base64 format.
 			// convert it into Buffer object
+			console.log("isValidLocalUser item:", item);
 			var combined = new Buffer(item.passwd, "base64");
 			passwd.verifyPassword(pass, combined, function(error, res) {
 				if (error) {
@@ -34,7 +188,7 @@ module.exports.isValidLocalUser = function(user, pass, cb) {
 
 
 module.exports.isValidUser = function(oauthServer, profile, cb) {
-	var collection = db.get().collection('users');
+	var collection = db.get().collection(col);
 	var query = {};
 	var doc = {};
 	switch (oauthServer) {
@@ -63,27 +217,24 @@ module.exports.isValidUser = function(oauthServer, profile, cb) {
 	console.log("isValidUser query " + oauthServer + ": " + JSON.stringify(query));
 	collection.findOne(query, function(err, item) {
 		if (err) console.error(err);
+		var isActive = false;
 		var isAdmin = false;
 		if (!item) {
 			doc.isActive = false;
 			collection.insertOne(doc, function(err, res) {
 				if (err) {
-					cb(err, null, isAdmin);
+					cb(err, null, isActive, isAdmin);
 				} else {
-					console.log("Account signup: ");
-					console.log(doc);
-					cb(null, false, isAdmin);	// it makes account signup pending
+					cb(null, false, isActive, isAdmin);	// it makes account signup pending
 				}
 			});
 		} else {
 			if (item.isActive == true) {
-				console.log(item)
 				if (item.isAdmin == true) isAdmin = true;
-				cb(err, true, isAdmin);
+				cb(err, true, item.isActive, isAdmin);
 			} else {
 				console.log("Pending account login trial");
-				console.log(item)
-				cb(err, false, isAdmin);
+				cb(err, false, isActive, isAdmin);
 			}
 		}
 	});
@@ -91,7 +242,7 @@ module.exports.isValidUser = function(oauthServer, profile, cb) {
 }
 
 module.exports.getPendingUser = function(cb) {
-	var collection = db.get().collection('users');
+	var collection = db.get().collection(col);
 	collection.find({isActive: false}).toArray(function(err, result) {
 		if (err) {
 			console.error(err);
@@ -103,7 +254,7 @@ module.exports.getPendingUser = function(cb) {
 }
 
 module.exports.getActiveUser = function(cb) {
-	var collection = db.get().collection('users');
+	var collection = db.get().collection(col);
 	collection.find({isActive: true}).toArray(function(err, result) {
 		if (err) {
 			console.error(err);
@@ -115,7 +266,7 @@ module.exports.getActiveUser = function(cb) {
 }
 
 module.exports.getUserById = function(id, cb) {
-	var collection = db.get().collection('users');
+	var collection = db.get().collection(col);
 	collection.findOne({ _id: ObjectId(id) }, function(err, result) {
 		if (err) {
 			console.error(err);
@@ -127,7 +278,7 @@ module.exports.getUserById = function(id, cb) {
 }
 
 module.exports.getOauthUser = function(cred, cb) {
-	var collection = db.get().collection('users');
+	var collection = db.get().collection(col);
 	collection.findOne(cred, function(err, result) {
 		if (err) {
 			console.error(err);
@@ -139,7 +290,7 @@ module.exports.getOauthUser = function(cred, cb) {
 }
 
 module.exports.deactivateUser = function(id, cb) {
-	var collection = db.get().collection('users');
+	var collection = db.get().collection(col);
 	collection.findOne({_id: ObjectId(id)}, function(err, res) {
 		if (err) {
 			console.error(err);
@@ -164,7 +315,7 @@ module.exports.deactivateUser = function(id, cb) {
 }
 
 module.exports.approveUser = function(id, confirm, cb) {
-	var collection = db.get().collection('users');
+	var collection = db.get().collection(col);
 	// id is Objectid(_id) in mongodb
 	if (confirm == "true") {
 		collection.updateOne({_id: ObjectId(id)}, {$set: {isActive: true}}, function(err, ret) {
@@ -188,8 +339,6 @@ module.exports.approveUser = function(id, confirm, cb) {
 					cb("Admin user ccannot be removed", null);
 				} else {
 					collection.remove({_id: ObjectId(id)}, function(err, ret) {
-						console.log(err);
-						console.log(ret);
 						if (err) {
 							console.error(err);
 							cb(err, null);
