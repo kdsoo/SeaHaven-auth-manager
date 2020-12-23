@@ -12,6 +12,9 @@
 		<div class="container" id="container">
 			<div class="card">
 				<div class="card-header">
+					<div align="center">
+						<h4 class="card-title">SeaHaven credential manager</h4>
+					</div>
 					<div class="row row-list">
 						<ul class="nav nav-tabs">
 							<li class="nav-item">
@@ -30,6 +33,7 @@
 							<thread>
 							<tr>
 								<th scope="col">Num</th>
+								<th scope="col">Admin</th>
 								<th scope="col">OAuth</th>
 								<th scope="col">ID</th>
 								<th scope="col">Description</th>
@@ -46,7 +50,12 @@
 				</div> <!-- card-body -->
 
 				<div class="card-footer">
-					<div align="center">© 2020 The SeaHaven project</div><button class="btn btn-danger btn-sm" onclick="location.href=&quot;logout&quot;">LOGOUT</button>
+					<div class="row row-list">
+						<div class="col-4" id="loggedID">Current ID: </div>
+					</div>
+					<button class="btn btn-info btn-sm" onclick="location.href=&quot;account&quot;">Update account</button>
+					<button class="btn btn-danger btn-sm" onclick="location.href=&quot;logout&quot;">LOGOUT</button>
+					<div align="center">© 2020 The SeaHaven project</div>
 				</div> <!-- card-footer -->
 			</div> <!-- card -->
 		</div>

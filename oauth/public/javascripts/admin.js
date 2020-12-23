@@ -15,6 +15,7 @@ $(document).ready(function(){
 		document.getElementById("active-tab").className = "nav-link active";
 		document.getElementById("pending-tab").className = "nav-link";
 	}
+	getCurrentID();
 });
 
 function getOauthProvider(user) {
@@ -99,7 +100,40 @@ function getUserPhoto(user) {
 			if (!photo) photo = "oauth/images/person.png";
 			break;
 	}
+	if (!photo) photo = "oauth/images/person.png";
 	return photo;
+}
+
+function setAdmin(id, status) {
+	$.ajax({
+		url: 'admin/set/' + status,
+		type: 'post',
+		data: {id: id},
+		success: function(data) {
+			console.log("setAdmin returns:", data);
+			if (data.success == true) {
+				var button = document.getElementById("admin-" + id);
+				if (status) {
+					button.className = "btn btn-danger btn-sm";
+					button.innerHTML = "Admin";
+					button.isAdmin = true;
+				} else {
+					button.className = "btn btn-success btn-sm";
+					button.innerHTML = "User";
+					button.isAdmin = false;
+				}
+			} else {
+				if (status) {
+					alert("Set admin failed");
+				} else {
+					alert("Unset admin failed");
+				}
+			}
+		},
+		error: function(jqXHR, textStatus, errorThrown) {
+			console.error(jqXHR.status);
+		}
+	});
 }
 
 function confirmUserAccept(elem) {
@@ -223,6 +257,15 @@ function getPendingUsers() {
 				num.innerHTML = i + 1;
 				tr.appendChild(num);
 
+				var admin = document.createElement("td");
+				var abutton = document.createElement("button");
+				abutton.className = "btn btn-default btn-sm";
+				abutton.type = "button";
+				abutton.innerHTML = "N/A";
+				abutton.onclick = function() { alert("Not available"); };
+				admin.appendChild(abutton);
+				tr.appendChild(admin);
+
 				var provider = document.createElement("td");
 				provider.innerHTML = getOauthProvider(users[i]);
 				tr.appendChild(provider);
@@ -264,7 +307,7 @@ function getPendingUsers() {
 
 				var suspend = document.createElement("td");
 				var sbutton = document.createElement("button");
-				sbutton.className = "btn btn-info btn-sm";
+				sbutton.className = "btn btn-default btn-sm";
 				sbutton.type = "button";
 				sbutton.innerHTML = "N/A";
 				sbutton.id = "accept-" + users[i]._id;
@@ -289,6 +332,7 @@ function getActiveUsers() {
 	$.ajax({
 		url: "admin/user/active", type: "GET",
 		success: function(users) {
+			console.log(users);
 			var list = document.getElementById("userlist");
 			for (var i = 0; i < users.length; i++) {
 				var tr = document.createElement("tr");
@@ -298,6 +342,23 @@ function getActiveUsers() {
 				num.setAttribute("scope", "row");
 				num.innerHTML = i + 1;
 				tr.appendChild(num);
+
+				var admin = document.createElement("td");
+				var abutton = document.createElement("button");
+				abutton.type = "button";
+				if (users[i].isAdmin == true) {
+					abutton.className = "btn btn-danger btn-sm";
+					abutton.innerHTML = "admin";
+					abutton.isAdmin = true;
+				} else {
+					abutton.className = "btn btn-success btn-sm";
+					abutton.innerHTML = "user";
+					abutton.isAdmin = false;
+				}
+				abutton.id = "admin-" + users[i]._id;
+				abutton.onclick = function() { setAdmin(this.id.split("admin-")[1], !this.isAdmin); };
+				admin.appendChild(abutton);
+				tr.appendChild(admin);
 
 				var provider = document.createElement("td");
 				provider.innerHTML = getOauthProvider(users[i]);
@@ -320,11 +381,11 @@ function getActiveUsers() {
 
 				var confirm = document.createElement("td");
 				var cbutton = document.createElement("button");
-				cbutton.className = "btn btn-success btn-sm";
+				cbutton.className = "btn btn-default btn-sm";
 				cbutton.type = "button";
-				cbutton.innerHTML = "accept";
+				cbutton.innerHTML = "N/A";
 				cbutton.id = "accept-" + users[i]._id;
-				cbutton.onclick = function() { confirmUserAccept(this); };
+				cbutton.onclick = function() { alert("Not available"); };
 				confirm.appendChild(cbutton);
 				tr.appendChild(confirm);
 
@@ -366,5 +427,16 @@ function secondsToString(seconds) {
 	var numminutes = Math.floor(((seconds % 86400) % 3600) / 60);
 	var numseconds = ((seconds % 86400) % 3600) % 60;
 	return numdays + " days " + numhours + " hours " + numminutes + " minutes " + numseconds + " seconds";
+}
+
+function getCurrentID() {
+	$.getJSON("account/data", function(data){
+		console.log(data);
+		var keys = Object.keys(data);
+		console.log(keys);
+		var oauth = getOauthProvider(data);
+		var username = document.getElementById("loggedID");
+		username.innerHTML += "[" + oauth + "] " + data["id"];
+	});
 }
 

@@ -48,7 +48,7 @@ function hashPassword(password, callback) {
 
       salt.copy(combined, 8);
       hash.copy(combined, salt.length + 8);
-      callback(null, combined);
+      callback(null, combined.toString("base64"));
     });
   });
 }

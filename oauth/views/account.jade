@@ -1,0 +1,57 @@
+doctype html
+html
+  head
+    title User credential required
+    meta(name='viewport', content='width=device-width, initial-scale=1')
+    link(rel='stylesheet', href='stylesheets/style.css')
+    script(src='https://code.jquery.com/jquery-3.5.1.min.js', integrity='sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=', crossorigin='anonymous')
+    link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css', integrity='sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z', crossorigin='anonymous')
+    script(src='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js', integrity='sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV', crossorigin='anonymous')
+  body
+    #container.container
+    #footer.container
+      button.btn.btn-danger.btn-sm(onclick="location.href='logout'") LOGOUT
+    script.
+      $(document).ready(function() {
+      getAccountData();
+      });
+      function getAccountData() {
+      var contaier = document.getElementById("container");
+      var head = document.createElement("div");
+      head.innerHTML = "<h3>Authenticated credential</h3>";
+      container.appendChild(head);
+      $.getJSON("account/data", function(data){
+      console.log(data);
+      var keys = Object.keys(data);
+      console.log(keys);
+      for (var i = 0 ; i < keys.length; i++) {
+      if (keys[i] !== "_id" && keys[i] !== "credentials" && keys[i] !== "passwd") {
+      createPane(keys[i], data[keys[i]]);
+      }
+      }
+      });
+      }
+      function createPane(f, v) {
+      var pane = document.createElement("div");
+      pane.id = f;
+      pane.style.outline = "1px solid lightgrey";
+      pane.className = "row row-list";
+      document.getElementById("container").appendChild(pane);
+      var label = document.createElement("div");
+      label.className = "col-2";
+      label.innerHTML = f;
+      var val = document.createElement("div");
+      val.className = "col-10";
+      if (isImage(v)) {
+      val.innerHTML = "<img src=" + v + "></img>";
+      } else {
+      val.innerHTML = v;
+      }
+      pane.appendChild(label);
+      pane.appendChild(val);
+      }
+      function isImage(url) {
+      if (typeof(url) != "string")
+      return false;
+      return(url.match(/\\.(jpeg|jpg|gif|png)$/) != null);
+      }

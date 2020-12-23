@@ -13,4 +13,8 @@ router.get("/test", auth.ensureAuthenticated, function(req, res, next) {
 	res.send("authenticated");
 });
 
+router.get("/test/local", auth.ensureLocalAuthenticated, function(req, res, next) {
+	res.send("local authenticated");
+});
+
 module.exports = router;
