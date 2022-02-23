@@ -6,22 +6,23 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "config": "*",
+    "connect-redis": "*",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
+    "express-session": "*",
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
+    "mongodb": "*",
     "morgan": "~1.9.1",
-    "config": "*",
-    "express-session": "*",
-    "redis": "*",
-    "connect-redis": "*",
     "passport": "*",
     "passport-google-oauth": "*",
     "passport-instagram": "*",
+    "passport-jwt": "^4.0.0",
     "passport-kakao": "*",
     "passport-local": "*",
     "passport-twitter": "*",
-    "mongodb": "*"
+    "redis": "*"
   }
 }

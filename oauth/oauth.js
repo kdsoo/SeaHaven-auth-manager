@@ -2,6 +2,9 @@ var config = require('config');
 var path = require('path');
 var passport = require('passport');
 var localStrategy = require('passport-local').Strategy;
+var passportJWT = require('passport-jwt');
+var JWTStrategy = passportJWT.Strategy;
+var ExtractJWT = passportJWT.ExtractJwt;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var KakaoStrategy = require('passport-kakao').Strategy;
 var InstagramStrategy = require('passport-instagram').Strategy;
@@ -24,6 +27,8 @@ mongodb.connect(config.get("oauth.mongodb.mongodb_auth"), function(err) {
 		console.log('Unable to connect to ' + config.credential.mongo_auth);
 	}
 });
+
+var jwtSecret = config.get("oauth.jwt.secret");
 
 var sessionSecret = config.get("oauth.session.secret");
 var sessionPrefix = config.get("oauth.session.prefix");
@@ -139,6 +144,21 @@ passport.use(new InstagramStrategy({
 				}
 			});
 		});
+	}
+));
+
+passport.use(new JWTStrategy({
+	jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+	secretOrKey   : process.env.JWT_SECRET || jwtSecret
+},
+	function(jwtPayload, done) {
+		return UserModel.findOneById(jwtPayload.id)
+			.then(function(user) {
+				return done(null, user);
+			})
+			.catch(function(err) {
+				return done(err);
+			});
 	}
 ));
 
