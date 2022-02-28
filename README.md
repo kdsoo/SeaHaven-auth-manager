@@ -27,7 +27,7 @@ package.json
 	"passport-local": "*",
 	"passport-twitter": "*",
 	"express-session": "*",
-	"redis": "*",
+	"redis": "3.1.2",
 	"connect-redis": "*",
 	"mongodb": "3.6.3"
 	...

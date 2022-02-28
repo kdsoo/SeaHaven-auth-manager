@@ -1,0 +1,13 @@
+{
+	"config": "*",
+	"passport": "*",
+	"passport-google-oauth": "*",
+	"passport-instagram": "*",
+	"passport-kakao": "*",
+	"passport-local": "*",
+	"passport-twitter": "*",
+	"express-session": "*",
+	"redis": "3.1.2",
+	"connect-redis": "*",
+	"mongodb": "3.6.3"
+}
