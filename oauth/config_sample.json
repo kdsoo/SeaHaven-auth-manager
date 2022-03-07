@@ -1,0 +1,35 @@
+{
+
+	"oauth": {
+		"host": "yourhost.net",
+		"namespace": "/URL_NAMESPACE",
+		"session": {
+			"prefix": "sess:authmanager:",
+			"secret": "YOUR_SECRET"
+		},
+		"mongodb": {
+			"mongodb_auth": "mongodb://127.0.0.1:27017",
+			"dbName": "seahaven",
+			"collection": "users"
+		},
+		"jwt": {
+			"secret": "YOUR_SECRET"
+		},
+		"google": {
+			"clientId": "",
+			"clientSecret": "",
+			"callbackURL": "https://yourhost.net/URL_NAMSPACE/auth/google/callback"
+		},
+		"kakao": {
+			"clientId": "",
+			"clientSecret": "",
+			"callbackURL": "https://yourhost.net/URL_NAMSPACE/auth/kakao/callback"
+		},
+		"instagram": {
+			"clientId": "",
+			"clientSecret": "",
+			"callbackURL": "https://yourhost.net/URL_NAMSPACE/auth/instagram/callback"
+		}
+	}
+}
+
