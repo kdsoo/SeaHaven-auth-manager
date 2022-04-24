@@ -34,6 +34,7 @@ var sessionSecret = config.get("oauth.session.secret");
 var sessionPrefix = config.get("oauth.session.prefix");
 var host = config.get("oauth.host");
 var namespace= config.get("oauth.namespace");
+var homeURL = host + namespace;
 
 var GOOGLE_CLIENT_ID = config.get("oauth.google.clientId");
 var GOOGLE_CLIENT_SECRET = config.get("oauth.google.clientSecret");
@@ -557,9 +558,8 @@ var ensureAuthenticated = function (req, res, next) {
 			, "isActive:", req.user.isActive);
 	}
 	if (req.isAuthenticated() && (req.user.isActive == true)) { return next(); }
-	var html = "<script>alert('Access denied');location.href='login';</script>";
-	res.status(401);
-	res.send(html);
+	console.log("Not logged in. redirecting to", homeURL)
+	res.redirect(encodeURI(req.protocol + "://" + homeURL + "/login"));
 };
 exports.ensureAuthenticated = ensureAuthenticated;
 
@@ -573,9 +573,8 @@ var ensureLocalAuthenticated = function (req, res, next) {
 			, "OAuth:", req.user.oauth);
 	}
 	if (req.isAuthenticated() && (req.user.isActive == true) && (req.user.oauth == "local")) { return next(); }
-	var html = "<script>alert('Access denied');location.href='login';</script>";
-	res.status(401);
-	res.send(html);
+	console.log("Not logged in. redirecting to", homeURL)
+	res.redirect(encodeURI(req.protocol + "://" + homeURL + "/login"));
 };
 exports.ensureLocalAuthenticated = ensureLocalAuthenticated;
 
