@@ -27,6 +27,7 @@ package.json
 	"passport-kakao": "*",<br />
 	"passport-local": "*",<br />
 	"passport-twitter": "*",<br />
+	"passport-google-verify-token": "^2.2.0",<br />
 	"express-session": "*",<br />
 	"redis": "3.1.2",<br />
 	"connect-redis": "*",<br />

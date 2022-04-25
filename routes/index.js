@@ -10,7 +10,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get("/test", auth.ensureAuthenticated, function(req, res, next) {
-	res.send("authenticated");
+	res.send(JSON.stringify(req.user) + " authenticated");
 });
 
 router.get("/test/local", auth.ensureLocalAuthenticated, function(req, res, next) {

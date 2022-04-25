@@ -1,5 +1,6 @@
 var config = require('config');
 var path = require('path');
+
 var passport = require('passport');
 var localStrategy = require('passport-local').Strategy;
 var passportJWT = require('passport-jwt');
@@ -8,6 +9,8 @@ var ExtractJWT = passportJWT.ExtractJwt;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var KakaoStrategy = require('passport-kakao').Strategy;
 var InstagramStrategy = require('passport-instagram').Strategy;
+var GoogleTokenStrategy = require("passport-google-verify-token").Strategy;
+
 var session = require('express-session');
 var redis = require('redis');
 var redisClient = redis.createClient();
@@ -62,6 +65,7 @@ passport.serializeUser(function(user, done) {
 passport.deserializeUser(function(obj, done) {
 	done(null, obj);
 });
+
 passport.use(new GoogleStrategy({
 	clientID: GOOGLE_CLIENT_ID,
 	clientSecret: GOOGLE_CLIENT_SECRET,
@@ -70,7 +74,6 @@ passport.use(new GoogleStrategy({
 	function(accessToken, refreshToken, profile, done) {
 		// asynchronous verification, for effect...
 		process.nextTick(function () {
-
 			// To keep the example simple, the user's Google profile is returned to
 			// represent the logged-in user.  In a typical application, you would want
 			// and return that user instead.
@@ -82,6 +85,34 @@ passport.use(new GoogleStrategy({
 						profile.isActive = isActive;
 						profile.oauth = "google";
 						return done(null, profile);
+					} else {
+						// TODO: authdb user add as pending
+						return done(null, null);
+					}
+				}
+			});
+		});
+	}
+));
+
+passport.use(new GoogleTokenStrategy({
+	clientID: GOOGLE_CLIENT_ID
+	// If other clients (such as android / ios apps) also access the google api:
+	// audience: [CLIENT_ID_FOR_THE_BACKEND, CLIENT_ID_ANDROID, CLIENT_ID_IOS, CLIENT_ID_SPA]
+},
+	function(parsedToken, googleId, done) {
+		// asynchronous verification, for effect...
+		process.nextTick(function () {
+			authdb.isValidUser("googleToken", parsedToken, function(err, ret, isActive, isAdmin) {
+				if (err) {
+					return done(err, null);
+				} else {
+					if (ret) {
+						parsedToken.isActive = isActive;
+						parsedToken.oauth = "google";
+						if (isAdmin)
+							parsedToken.isAdmin = isAdmin;
+						return done(null, parsedToken);
 					} else {
 						// TODO: authdb user add as pending
 						return done(null, null);
@@ -487,6 +518,35 @@ var setup = function (app) {
 
 		});
 
+	app.get('/oauth/google/token',
+		passport.authenticate('google-verify-token'),
+		function (req, res) {
+			// do something with req.user
+			console.log("req.user:", req.user);
+			if (!req.user) {
+				res.status(401);
+				res.json({isSuccess:false});
+			} else {
+				res.json({isSuccess: true, payload: req.user});
+			}
+
+		}
+	);
+
+	app.post('/oauth/google/token',
+		passport.authenticate('google-verify-token'),
+		function (req, res) {
+			// do something with req.user
+			console.log("req.user:", req.user);
+			if (!req.user) {
+				res.status(401);
+				res.json({isSuccess:false});
+			} else {
+				res.json({isSuccess: true, payload: req.user});
+			}
+		}
+	);
+
 	app.get('/logout', function(req, res){
 		req.logout();
 		res.clearCookie("admin");
@@ -556,6 +616,7 @@ var ensureAuthenticated = function (req, res, next) {
 		console.log(namespace + req.originalUrl
 			, "ensureAuthenticated isAuthenticated?: ", req.isAuthenticated()
 			, "isActive:", req.user.isActive);
+		console.log(req.user);
 	}
 	if (req.isAuthenticated() && (req.user.isActive == true)) { return next(); }
 	console.log("Not logged in. redirecting to", homeURL)

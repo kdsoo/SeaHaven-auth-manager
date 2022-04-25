@@ -197,6 +197,11 @@ module.exports.isValidUser = function(oauthServer, profile, cb) {
 			doc.googleId = profile.id;
 			doc.google = profile;
 			break;
+		case "googleToken":
+			query = {googleId: profile.sub};
+			doc.googleId = profile.sub;
+			doc.google = profile;
+			break;
 		case "kakao":
 			query = {kakaoId: profile.id.toString()};
 			doc.kakaoId = profile.id.toString();
